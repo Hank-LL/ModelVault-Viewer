@@ -7,7 +7,6 @@
     body { font-family: sans-serif; margin: 2em; }
     .file-list { list-style: none; padding: 0; }
     .file-list li { margin: 0.5em 0; cursor: pointer; }
-    a { color: blue; text-decoration: none; }
   </style>
 </head>
 <body>
@@ -18,9 +17,7 @@
   <script>
     const ACCESS_TOKEN = "sl.u.AF_xPiKNn_PhpPwDIuAKCXxetvgfkizlxi3HNNOUdlQVp7WZvZ9kCiJ_Gqd12m5OU1ZTSlFcJksOJz3-oxVYD471cYF53crXj7P2VpHm4oHn3Ct45HA4WZExDO1eDLrp9lQM5HpxTLSkDrOf84ISxtJGQuauqtrkLBmtBNiPL6DPh106R8y56RgZlRkmS5EfHnKqlynRELE0lUu80v94RWbc1GDX_-0prFu74KP2Rzyn7EFjne4CdYLLu4Urx_UeUcYKq2hrS7ztq78IxQ3a2vfgIdS_WW_NNEL2-S5QR0btI8vKxIghKVzUojJ9BpQmxeKkA5Uppc--cLzsnpgaFo720hpHLi16O0eDWCW82LlaV4bUbiuIdOMKX2tEEVo5LNCHd9vBqxuywRiqC1rRFo6eBqKYUAk-YyC2UfbTLbWRvs-EZYJ-s0Y_StYT58QOexh5-GkpZoZY-5pSkwrqyxuHNxKQERdj5Ur1D0nxEn315PtbUiasYTvJwNFpBFdWeJTNTcGG80mPyBsNz2QbW3AZsr4aaxrsIhD1Nv8Ux91SZVItmqQiXzkX8OQJF3qqWhuDlejxSnc-8ab37PPj76Cl_e5WowtV9fzXtsJ7WA-f7Fkrvc-kmxU44UbuNBVsGd5bjg_hlyAuICSVovfo33Qg_BSnXEuWP94wLWYP33yvvSFuk_VcQWsiiQ8NZ_Uve7C0KEdHr8ZzO5ukno_tMcpwLMf3-jISN8Zgg5nNlG4T9bzlvZCdjHx9pSwx5MqohafA3IOL0wbVpXNEHiJEUwscyv5YyeAsO0gtNoDpMnWQt0ht3OsnT-Mz7xnmIjvaW17mxNysUEBefhsVc0VHaviVUkZcxNuoHT5nphUWdvlWuyloyvFjkTujsxFWkNd_DVxdCyxGE99WxAGmlcXbpqqoRcNC32I0RyRqb274qKN3pVegJJnfzg9-YcgqO8lUFG_i2zQLwPhjcKhKgeGGX4eQhUq9qeHVqJEh7PvQebdqy2qqXonmaOZpj0o2UObZVmikQeuCRxJURIr200sRD7P3D3llRAH9pdJg0gbPS6HUkZpZU18dZO0iQsIMq0QX6Q9oiWr2hD8HT0W8W_EO7W2JjVqUYTspmHG_neKoDjJmIJjg0wng4NTLwnthyiSrF7gNS8jBf97nJdLQzfd-jXJ-70yRb64AKHKl4gYBP1RYWF4dNAQQZTQG7U-ZMytC73xbxXcznY5tAX5jeAbjOLuFtlZeoXrR1PDtAVjHFaczVIgKeFMh9aj8dcRV44-AIXk";
     const DROPBOX_API = "https://api.dropboxapi.com/2/files/list_folder";
-    const DROPBOX_CONTENT = "https://content.dropboxapi.com/2/files/download";
 
-    // 現在のフォルダパス
     let currentPath = "";
 
     async function fetchFiles(path) {
@@ -37,13 +34,12 @@
       console.log(data);
 
       const list = document.getElementById("file-list");
-      list.innerHTML = ""; // 前のリストをクリア
+      list.innerHTML = "";
 
-      // 戻るボタン表示
       const backBtn = document.getElementById("back");
       backBtn.style.display = path ? "inline" : "none";
       backBtn.onclick = () => {
-        fetchFiles(""); // ルートに戻る
+        fetchFiles("");
         currentPath = "";
       }
 
@@ -56,26 +52,9 @@
             currentPath = entry.path_lower;
             fetchFiles(entry.path_lower);
           }
-        } else if (entry[".tag"] === "file") {
-          const link = document.createElement("a");
-          link.textContent = entry.name;
-          link.href = "#";
-          link.onclick = async () => {
-            const res = await fetch(DROPBOX_CONTENT, {
-              method: "POST",
-              headers: {
-                "Authorization": "Bearer " + ACCESS_TOKEN,
-                "Dropbox-API-Arg": JSON.stringify({ path: entry.path_lower })
-              }
-            });
-            const blob = await res.blob();
-            const url = URL.createObjectURL(blob);
-            window.open(url);
-          };
-          li.innerHTML = "";
-          li.appendChild(link);
         }
 
+        // ファイルも名前だけ表示
         list.appendChild(li);
       });
     }
