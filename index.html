@@ -8,58 +8,121 @@
     .file-list { list-style: none; padding: 0; }
     .file-list li { margin: 0.5em 0; }
     a { color: blue; text-decoration: none; }
+    .folder-link { 
+      color: #e67e22; 
+      font-weight: bold; 
+      font-size: 1.1em;
+    }
+    .folder-link:before { content: "📁 "; }
+    .file-link:before { content: "📄 "; }
+    .back-link { 
+      color: #7f8c8d; 
+      font-style: italic; 
+    }
+    .back-link:before { content: "← "; }
+    .breadcrumb {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      font-size: 0.9em;
+    }
   </style>
 </head>
 <body>
   <h1>Dropbox ファイル一覧</h1>
+  <div id="breadcrumb" class="breadcrumb"></div>
   <ul id="file-list" class="file-list"></ul>
-
+  
   <script>
     // 取得したDropboxトークン↓
     const ACCESS_TOKEN = "sl.u.AF_xPiKNn_PhpPwDIuAKCXxetvgfkizlxi3HNNOUdlQVp7WZvZ9kCiJ_Gqd12m5OU1ZTSlFcJksOJz3-oxVYD471cYF53crXj7P2VpHm4oHn3Ct45HA4WZExDO1eDLrp9lQM5HpxTLSkDrOf84ISxtJGQuauqtrkLBmtBNiPL6DPh106R8y56RgZlRkmS5EfHnKqlynRELE0lUu80v94RWbc1GDX_-0prFu74KP2Rzyn7EFjne4CdYLLu4Urx_UeUcYKq2hrS7ztq78IxQ3a2vfgIdS_WW_NNEL2-S5QR0btI8vKxIghKVzUojJ9BpQmxeKkA5Uppc--cLzsnpgaFo720hpHLi16O0eDWCW82LlaV4bUbiuIdOMKX2tEEVo5LNCHd9vBqxuywRiqC1rRFo6eBqKYUAk-YyC2UfbTLbWRvs-EZYJ-s0Y_StYT58QOexh5-GkpZoZY-5pSkwrqyxuHNxKQERdj5Ur1D0nxEn315PtbUiasYTvJwNFpBFdWeJTNTcGG80mPyBsNz2QbW3AZsr4aaxrsIhD1Nv8Ux91SZVItmqQiXzkX8OQJF3qqWhuDlejxSnc-8ab37PPj76Cl_e5WowtV9fzXtsJ7WA-f7Fkrvc-kmxU44UbuNBVsGd5bjg_hlyAuICSVovfo33Qg_BSnXEuWP94wLWYP33yvvSFuk_VcQWsiiQ8NZ_Uve7C0KEdHr8ZzO5ukno_tMcpwLMf3-jISN8Zgg5nNlG4T9bzlvZCdjHx9pSwx5MqohafA3IOL0wbVpXNEHiJEUwscyv5YyeAsO0gtNoDpMnWQt0ht3OsnT-Mz7xnmIjvaW17mxNysUEBefhsVc0VHaviVUkZcxNuoHT5nphUWdvlWuyloyvFjkTujsxFWkNd_DVxdCyxGE99WxAGmlcXbpqqoRcNC32I0RyRqb274qKN3pVegJJnfzg9-YcgqO8lUFG_i2zQLwPhjcKhKgeGGX4eQhUq9qeHVqJEh7PvQebdqy2qqXonmaOZpj0o2UObZVmikQeuCRxJURIr200sRD7P3D3llRAH9pdJg0gbPS6HUkZpZU18dZO0iQsIMq0QX6Q9oiWr2hD8HT0W8W_EO7W2JjVqUYTspmHG_neKoDjJmIJjg0wng4NTLwnthyiSrF7gNS8jBf97nJdLQzfd-jXJ-70yRb64AKHKl4gYBP1RYWF4dNAQQZTQG7U-ZMytC73xbxXcznY5tAX5jeAbjOLuFtlZeoXrR1PDtAVjHFaczVIgKeFMh9aj8dcRV44-AIXk"; 
     const DROPBOX_API = "https://api.dropboxapi.com/2/files/list_folder";
     const DROPBOX_CONTENT = "https://content.dropboxapi.com/2/files/download";
-
-    async function fetchFiles() {
+    
+    let currentPath = ""; // 現在のフォルダパス
+    
+    // パンくずリストを更新
+    function updateBreadcrumb() {
+      const breadcrumb = document.getElementById("breadcrumb");
+      if (currentPath === "") {
+        breadcrumb.textContent = "📁 ルート";
+      } else {
+        breadcrumb.textContent = `📁 ルート > ${currentPath.replace(/^\//, '')}`;
+      }
+    }
+    
+    async function fetchFiles(path = "") {
       const response = await fetch(DROPBOX_API, {
         method: "POST",
         headers: {
           "Authorization": "Bearer " + ACCESS_TOKEN,
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ path: "" }) // Dropboxのルート or 任意のフォルダ
+        body: JSON.stringify({ path: path })
       });
       const data = await response.json();
       console.log(data);
-
+      
       const list = document.getElementById("file-list");
-      data.entries.forEach(file => {
-        if (file[".tag"] === "file") {
-          const li = document.createElement("li");
-          const link = document.createElement("a");
-
-          // ダウンロードリンクを作成
-          link.textContent = file.name;
+      list.innerHTML = ""; // リストをクリア
+      
+      // 戻るボタン（ルートでない場合のみ）
+      if (currentPath !== "") {
+        const li = document.createElement("li");
+        const link = document.createElement("a");
+        link.textContent = "戻る";
+        link.className = "back-link";
+        link.href = "#";
+        link.onclick = () => {
+          currentPath = "";
+          updateBreadcrumb();
+          fetchFiles("");
+        };
+        li.appendChild(link);
+        list.appendChild(li);
+      }
+      
+      data.entries.forEach(entry => {
+        const li = document.createElement("li");
+        const link = document.createElement("a");
+        
+        if (entry[".tag"] === "folder") {
+          // フォルダの場合
+          link.textContent = entry.name;
+          link.className = "folder-link";
+          link.href = "#";
+          link.onclick = () => {
+            currentPath = entry.path_lower;
+            updateBreadcrumb();
+            fetchFiles(entry.path_lower);
+          };
+        } else if (entry[".tag"] === "file") {
+          // ファイルの場合（元のコードと同じ）
+          link.textContent = entry.name;
+          link.className = "file-link";
           link.href = "#";
           link.onclick = async () => {
             const res = await fetch(DROPBOX_CONTENT, {
               method: "POST",
               headers: {
                 "Authorization": "Bearer " + ACCESS_TOKEN,
-                "Dropbox-API-Arg": JSON.stringify({ path: file.path_lower })
+                "Dropbox-API-Arg": JSON.stringify({ path: entry.path_lower })
               }
             });
             const blob = await res.blob();
             const url = URL.createObjectURL(blob);
             window.open(url);
           };
-
-          li.appendChild(link);
-          list.appendChild(li);
         }
+        
+        li.appendChild(link);
+        list.appendChild(li);
       });
     }
-
+    
+    // 初期化
+    updateBreadcrumb();
     fetchFiles();
   </script>
 </body>
