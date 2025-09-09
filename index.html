@@ -1,171 +1,86 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <title>AIモデル一覧</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <title>ModelVault</title>
   <style>
     body { font-family: sans-serif; margin: 2em; }
     .file-list { list-style: none; padding: 0; }
-    .file-list li { margin: 0.4em 0; }
-    a { color: blue; text-decoration: none; cursor: pointer; }
-    .folder { font-weight: 700; }
-    .controls { margin-bottom: 1em; }
-    .breadcrumb { font-size: 0.9em; color: #333; margin-bottom: 0.5em; }
-    .small { font-size: 0.9em; color: #666; margin-left: 0.5em; }
+    .file-list li { margin: 0.5em 0; cursor: pointer; }
+    a { color: blue; text-decoration: none; }
   </style>
 </head>
 <body>
-  <h1>Dropbox ファイル一覧</h1>
-  <div class="controls">
-    <button id="up-btn">↑ 親フォルダへ</button>
-    <span id="current-path" class="breadcrumb">/</span>
-  </div>
+  <h1>ModelVault ファイル一覧</h1>
   <ul id="file-list" class="file-list"></ul>
+  <button id="back" style="display:none;">戻る</button>
 
   <script>
-    // 取得したDropboxトークン（例として埋めていますが、公開サイトに直接載せるのは危険です）
-    const ACCESS_TOKEN = "sl.u.AF_xPiKNn_PhpPwDIuAKCXxetvgfkizlxi3HNNOUdlQVp7WZvZ9kCiJGqd12m5OU1ZTSlFcJksOJz3-oxVYD471cYF53crXj7P2VpHm4oHn3Ct45HA4WZExDO1eDLrp9lQM5HpxTLSkDrOf84ISxtJGQuauqtrkLBmtBNiPL6DPh106R8y56RgZlRkmS5EfHnKqlynRELE0lUu80v94RWbc1GDX-0prFu74KP2Rzyn7EFjne4CdYLLu4Urx_UeUcYKq2hrS7ztq78IxQ3a2vfgIdS_WW_NNEL2-S5QR0btI8vKxIghKVzUojJ9BpQmxeKkA5Uppc--cLzsnpgaFo720hpHLi16O0eDWCW82LlaV4bUbiuIdOMKX2tEEVo5LNCHd9vBqxuywRiqC1rRFo6eBqKYUAk-YyC2UfbTLbWRvs-EZYJ-s0Y_StYT58QOexh5-GkpZoZY-5pSkwrqyxuHNxKQERdj5Ur1D0nxEn315PtbUiasYTvJwNFpBFdWeJTNTcGG80mPyBsNz2QbW3AZsr4aaxrsIhD1Nv8Ux91SZVItmqQiXzkX8OQJF3qqWhuDlejxSnc-8ab37PPj76Cl_e5WowtV9fzXtsJ7WA-f7Fkrvc-kmxU44UbuNBVsGd5bjg_hlyAuICSVovfo33Qg_BSnXEuWP94wLWYP33yvvSFuk_VcQWsiiQ8NZ_Uve7C0KEdHr8ZzO5ukno_tMcpwLMf3-jISN8Zgg5nNlG4T9bzlvZCdjHx9pSwx5MqohafA3IOL0wbVpXNEHiJEUwscyv5YyeAsO0gtNoDpMnWQt0ht3OsnT-Mz7xnmIjvaW17mxNysUEBefhsVc0VHaviVUkZcxNuoHT5nphUWdvlWuyloyvFjkTujsxFWkNd_DVxdCyxGE99WxAGmlcXbpqqoRcNC32I0RyRqb274qKN3pVegJJnfzg9-YcgqO8lUFG_i2zQLwPhjcKhKgeGGX4eQhUq9qeHVqJEh7PvQebdqy2qqXonmaOZpj0o2UObZVmikQeuCRxJURIr200sRD7P3D3llRAH9pdJg0gbPS6HUkZpZU18dZO0iQsIMq0QX6Q9oiWr2hD8HT0W8W_EO7W2JjVqUYTspmHG_neKoDjJmIJjg0wng4NTLwnthyiSrF7gNS8jBf97nJdLQzfd-jXJ-70yRb64AKHKl4gYBP1RYWF4dNAQQZTQG7U-ZMytC73xbxXcznY5tAX5jeAbjOLuFtlZeoXrR1PDtAVjHFaczVIgKeFMh9aj8dcRV44-AIXk";
+    const ACCESS_TOKEN = "sl.u.AF_xPiKNn_PhpPwDIuAKCXxetvgfkizlxi3HNNOUdlQVp7WZvZ9kCiJ_Gqd12m5OU1ZTSlFcJksOJz3-oxVYD471cYF53crXj7P2VpHm4oHn3Ct45HA4WZExDO1eDLrp9lQM5HpxTLSkDrOf84ISxtJGQuauqtrkLBmtBNiPL6DPh106R8y56RgZlRkmS5EfHnKqlynRELE0lUu80v94RWbc1GDX_-0prFu74KP2Rzyn7EFjne4CdYLLu4Urx_UeUcYKq2hrS7ztq78IxQ3a2vfgIdS_WW_NNEL2-S5QR0btI8vKxIghKVzUojJ9BpQmxeKkA5Uppc--cLzsnpgaFo720hpHLi16O0eDWCW82LlaV4bUbiuIdOMKX2tEEVo5LNCHd9vBqxuywRiqC1rRFo6eBqKYUAk-YyC2UfbTLbWRvs-EZYJ-s0Y_StYT58QOexh5-GkpZoZY-5pSkwrqyxuHNxKQERdj5Ur1D0nxEn315PtbUiasYTvJwNFpBFdWeJTNTcGG80mPyBsNz2QbW3AZsr4aaxrsIhD1Nv8Ux91SZVItmqQiXzkX8OQJF3qqWhuDlejxSnc-8ab37PPj76Cl_e5WowtV9fzXtsJ7WA-f7Fkrvc-kmxU44UbuNBVsGd5bjg_hlyAuICSVovfo33Qg_BSnXEuWP94wLWYP33yvvSFuk_VcQWsiiQ8NZ_Uve7C0KEdHr8ZzO5ukno_tMcpwLMf3-jISN8Zgg5nNlG4T9bzlvZCdjHx9pSwx5MqohafA3IOL0wbVpXNEHiJEUwscyv5YyeAsO0gtNoDpMnWQt0ht3OsnT-Mz7xnmIjvaW17mxNysUEBefhsVc0VHaviVUkZcxNuoHT5nphUWdvlWuyloyvFjkTujsxFWkNd_DVxdCyxGE99WxAGmlcXbpqqoRcNC32I0RyRqb274qKN3pVegJJnfzg9-YcgqO8lUFG_i2zQLwPhjcKhKgeGGX4eQhUq9qeHVqJEh7PvQebdqy2qqXonmaOZpj0o2UObZVmikQeuCRxJURIr200sRD7P3D3llRAH9pdJg0gbPS6HUkZpZU18dZO0iQsIMq0QX6Q9oiWr2hD8HT0W8W_EO7W2JjVqUYTspmHG_neKoDjJmIJjg0wng4NTLwnthyiSrF7gNS8jBf97nJdLQzfd-jXJ-70yRb64AKHKl4gYBP1RYWF4dNAQQZTQG7U-ZMytC73xbxXcznY5tAX5jeAbjOLuFtlZeoXrR1PDtAVjHFaczVIgKeFMh9aj8dcRV44-AIXk";
+    const DROPBOX_API = "https://api.dropboxapi.com/2/files/list_folder";
+    const DROPBOX_CONTENT = "https://content.dropboxapi.com/2/files/download";
 
-    const API_LIST = "https://api.dropboxapi.com/2/files/list_folder";
-    const API_CONTINUE = "https://api.dropboxapi.com/2/files/list_folder/continue";
-    const API_DOWNLOAD = "https://content.dropboxapi.com/2/files/download";
-
-    // 現在のパス。App folder のルートは空文字 "" です。UIでは "/" として表示します。
+    // 現在のフォルダパス
     let currentPath = "";
 
-    document.getElementById("up-btn").addEventListener("click", () => {
-      if (!currentPath) return; // ルートなら無視
-      currentPath = parentPath(currentPath);
-      listFolder(currentPath);
-    });
-
-    function parentPath(path) {
-      // path は "/フォルダ/..." の形を想定。空なら空を返す。
-      if (!path) return "";
-      const parts = path.split("/").filter(Boolean); // leading/trailing の空要素を除去
-      parts.pop();
-      return parts.length ? "/" + parts.join("/") : "";
-    }
-
-    function displayPath(path) {
-      document.getElementById("current-path").textContent = path ? path : "/";
-    }
-
-    async function listFolder(path = "") {
-      // UI をクリア
-      const list = document.getElementById("file-list");
-      list.innerHTML = "<li class='small'>読み込み中…</li>";
-      displayPath(path);
-
-      let entries = [];
-      try {
-        // 初回 list_folder
-        let res = await fetch(API_LIST, {
-          method: "POST",
-          headers: {
-            "Authorization": "Bearer " + ACCESS_TOKEN,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ path: path, include_non_downloadable_files: false })
-        });
-        let data = await res.json();
-        if (data.error) throw data;
-        entries = entries.concat(data.entries || []);
-
-        // ページングがある場合は続けて取得
-        while (data.has_more) {
-          res = await fetch(API_CONTINUE, {
-            method: "POST",
-            headers: {
-              "Authorization": "Bearer " + ACCESS_TOKEN,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ cursor: data.cursor })
-          });
-          data = await res.json();
-          if (data.error) throw data;
-          entries = entries.concat(data.entries || []);
-        }
-      } catch (err) {
-        console.error(err);
-        list.innerHTML = "<li class='small'>フォルダの取得に失敗しました。コンソールを確認してください。</li>";
-        return;
-      }
-
-      // フォルダを先に、ファイルを後に表示
-      const folders = entries.filter(e => e[".tag"] === "folder");
-      const files = entries.filter(e => e[".tag"] === "file");
-
-      list.innerHTML = "";
-
-      if (folders.length === 0 && files.length === 0) {
-        list.innerHTML = "<li class='small'>このフォルダは空です。</li>";
-        return;
-      }
-
-      folders.forEach(folder => {
-        const li = document.createElement("li");
-        const a = document.createElement("a");
-        a.textContent = "📁 " + folder.name;
-        a.className = "folder";
-        a.onclick = () => {
-          // フォルダを開く。folder.path_display を使う
-          currentPath = folder.path_display || folder.path_lower || ("/" + folder.name);
-          listFolder(currentPath);
-        };
-        li.appendChild(a);
-        list.appendChild(li);
+    async function fetchFiles(path) {
+      const response = await fetch(DROPBOX_API, {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + ACCESS_TOKEN,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ path: path })
       });
 
-      files.forEach(file => {
-        const li = document.createElement("li");
-        const ext = (file.name.split(".").pop() || "").toLowerCase();
-        const a = document.createElement("a");
-        a.textContent = (ext === "mp4" ? "🎞️ " : "📄 ") + file.name;
+      const data = await response.json();
+      console.log(data);
 
-        a.onclick = async () => {
-          // ダウンロードして開く（ブラウザで再生 / ダウンロード）
-          try {
-            const res = await fetch(API_DOWNLOAD, {
+      const list = document.getElementById("file-list");
+      list.innerHTML = ""; // 前のリストをクリア
+
+      // 戻るボタン表示
+      const backBtn = document.getElementById("back");
+      backBtn.style.display = path ? "inline" : "none";
+      backBtn.onclick = () => {
+        fetchFiles(""); // ルートに戻る
+        currentPath = "";
+      }
+
+      data.entries.forEach(entry => {
+        const li = document.createElement("li");
+        li.textContent = entry.name;
+
+        if (entry[".tag"] === "folder") {
+          li.onclick = () => {
+            currentPath = entry.path_lower;
+            fetchFiles(entry.path_lower);
+          }
+        } else if (entry[".tag"] === "file") {
+          const link = document.createElement("a");
+          link.textContent = entry.name;
+          link.href = "#";
+          link.onclick = async () => {
+            const res = await fetch(DROPBOX_CONTENT, {
               method: "POST",
               headers: {
                 "Authorization": "Bearer " + ACCESS_TOKEN,
-                // Dropbox のダウンロード API には path か id を指定（path_display を使う）
-                "Dropbox-API-Arg": JSON.stringify({ path: file.path_display || file.path_lower })
+                "Dropbox-API-Arg": JSON.stringify({ path: entry.path_lower })
               }
             });
-            if (!res.ok) throw new Error("ダウンロード失敗: " + res.status);
             const blob = await res.blob();
             const url = URL.createObjectURL(blob);
+            window.open(url);
+          };
+          li.innerHTML = "";
+          li.appendChild(link);
+        }
 
-            if (ext === "mp4") {
-              // mp4 は新しいタブで再生
-              window.open(url, "_blank");
-            } else {
-              // それ以外はダウンロード（.onnx 等）
-              const dl = document.createElement("a");
-              dl.href = url;
-              dl.download = file.name;
-              document.body.appendChild(dl);
-              dl.click();
-              dl.remove();
-              // オブジェクトURLは後で解放（短時間で十分）
-              setTimeout(() => URL.revokeObjectURL(url), 60_000);
-            }
-          } catch (e) {
-            console.error(e);
-            alert("ファイル取得に失敗しました。コンソールを確認してください。");
-          }
-        };
-
-        li.appendChild(a);
         list.appendChild(li);
       });
     }
 
-    // 最初にルートを表示（App folder のルートは ""）
-    listFolder("");
+    fetchFiles("");
   </script>
 </body>
 </html>
