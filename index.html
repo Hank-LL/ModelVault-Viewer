@@ -27,7 +27,7 @@
           "Authorization": "Bearer " + ACCESS_TOKEN,
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ path: "" }) // Dropboxのルート or 任意のフォルダ
+        body: JSON.stringify({ path: "/慎重型走行モデル" }) // Dropboxのルート or 任意のフォルダ
       });
       const data = await response.json();
       console.log(data);
