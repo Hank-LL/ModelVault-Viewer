@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>AIモデル一覧</title>
+  <style>
+    body { font-family: sans-serif; margin: 2em; }
+    .file-list { list-style: none; padding: 0; }
+    .file-list li { margin: 0.5em 0; }
+    a { color: blue; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <h1>Dropbox ファイル一覧</h1>
+  <ul id="file-list" class="file-list"></ul>
+
+  <script>
+    // 取得したDropboxトークン↓
+    const ACCESS_TOKEN = "sl.u.AF-BI8Dh3qxpLlpDuYlLtab0oPKZtk19ebeR12lT1Srl_d_Ui72pDVVkk1EWuSwrjKOp0Eky2trTCUdybHUktDIevm93zGEghcbIfl8Lo53kg3HxHF4x0ndKgjX5qw11JzhalYGBeadJ9s57vne0-OtZVhzkTLcEzc2x6kQ5qzqFx4LW1LXo4EvlBY0uyqoVrj4Q8zVsK-FLEmOfI0BkeRu9DKMGy7pjc926A8cqBG_vDSvMD7s91FV6FyrENLIF7utpaRW-NlWSUJVAL5kUPajTE1GLpfxoIZ0wLAAEMnw2XWbp0FvKEHZki5kNOsXqj09KmDU80Lu_4NGX7ssvl12jkglbJI1BwqVuIUDMIw7pEm89dNBn2YVR_L9cHEPSYPbkrlo4wn_7yIzGxFS5zkOeOh-ZhhUMS_GPotUt-aOWCR9VGW1h1aG_qleyCjTlXAcOqGCgdCXpVMWefxGWRg8LmLPFqIy3KVaULJJuJp9RnWZBd77Am9iOkVcf6F5WWApNlHveF-_vTWzZ3WmVQFNcIt92FDoHLBYp-LBVuW9nvi7pA7sVh3-oi2eoHp2jO2MErAq_sEFfR2O8Xpter-K6wQ2Puz0ZHOJZexT0vL8oTs0vE3GMvS0cKl1GsFEaZhbYBYGB6Y5M9lqk1I9jqbhwyjmyDubmCDXhP6kotXzkV9yLtedLklEtYOCSMhP4TIlaafvHqlqgfSvgkzKF2hLnBx0kMk057nXUk0Ny49cCWqMsqcoiUGWiJPsUn_vgrHkdRstJdKTnp6pEuU83E3Lnr4SWYbhgQ3Y_vDowv9eIXj0wKdIBsUly0JUSMcq1FP9kNTGsQEsb6hF9AxapmbaVg4wB-cFJ-Ay4wwLxO62XL6AYfncY8QQF2uF1rY0yQfUPyEaaT0QCef_QdIGrpWni1LWatsxul_NxCSazmnIErmk6YWly_NzoSZyTJ0Na2y9n2uNCw_C6qKfMG1spzg75xDRZsBxw9l9WV27tdMDiZ9ji6X09YtlNpW9qHbbQevrzBCClNAzwxMWleCkqIdfVW9-Zk6lOM4XlFjwpiTyl3YfYZwKjlNn7TPjqT0mcYnl3xmhzlyLxCHeywBYIzYaFjgGUTa4DRXXsZXzLTxQAbqwJvADjkxqvniAhH-Cyi5UtcZz4TD6jhTL57S21Osg0S3VefEMAkRVB5AM6Z1Y0STmVou7S2cowlgVpbpdCG3zkHFDbfclpjhxWoQ0CjMDpN9SEdXwjk0Vm03XHnV5Or3NwhueiZhbeB0gKoklMB9ILwlu3GbMQeUdtJYM39SgQ"; 
+    const DROPBOX_API = "https://api.dropboxapi.com/2/files/list_folder";
+    const DROPBOX_CONTENT = "https://content.dropboxapi.com/2/files/download";
+
+    async function fetchFiles() {
+      const response = await fetch(DROPBOX_API, {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + ACCESS_TOKEN,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ path: "" }) // Dropboxのルート or 任意のフォルダ
+      });
+      const data = await response.json();
+      console.log(data);
+
+      const list = document.getElementById("file-list");
+      data.entries.forEach(file => {
+        if (file[".tag"] === "file") {
+          const li = document.createElement("li");
+          const link = document.createElement("a");
+
+          // ダウンロードリンクを作成
+          link.textContent = file.name;
+          link.href = "#";
+          link.onclick = async () => {
+            const res = await fetch(DROPBOX_CONTENT, {
+              method: "POST",
+              headers: {
+                "Authorization": "Bearer " + ACCESS_TOKEN,
+                "Dropbox-API-Arg": JSON.stringify({ path: file.path_lower })
+              }
+            });
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            window.open(url);
+          };
+
+          li.appendChild(link);
+          list.appendChild(li);
+        }
+      });
+    }
+
+    fetchFiles();
+  </script>
+</body>
+</html>
