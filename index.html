@@ -2,64 +2,102 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>ModelVault</title>
+  <title>ModelVault Viewer</title>
   <style>
-    body { font-family: sans-serif; margin: 2em; }
-    .file-list { list-style: none; padding: 0; }
-    .file-list li { margin: 0.5em 0; cursor: pointer; }
+    body { font-family: sans-serif; }
+    ul { list-style: none; padding: 0; }
+    li { padding: 5px; cursor: pointer; }
+    li.folder { font-weight: bold; color: darkgreen; }
+    li.file { color: blue; }
+    #backBtn { margin-bottom: 10px; display:none; }
   </style>
 </head>
 <body>
-  <h1>ModelVault ファイル一覧</h1>
-  <ul id="file-list" class="file-list"></ul>
-  <button id="back" style="display:none;">戻る</button>
+  <h1>Dropbox ファイル一覧</h1>
+  <button id="backBtn">戻る</button>
+  <ul id="file-list"></ul>
+  <video id="videoPlayer" width="640" height="360" controls style="display:none; margin-top:1em;"></video>
 
   <script>
-    const ACCESS_TOKEN = "sl.u.AF_TK_aSKA7xcF6TL1bUY5Ql9UEwy_jrFgl6dennXuj9uzxs1dSXGsSJhoVWN2RZpXFft11vsyZ09ZdzDTznd4FK1BFGYz6lr2oX8mqugvO5qx24a_Vg7rBsDuIKXtX4gDtFnqLVTNN6mUQHVxLvty3mnRJwpPN9uAhHJG9lP5rOAsmDU8E-jslOYexxqzQk8fvwdA8mkYvW0oUrfy1iXnCWthZu2boG1H-Aaz0cAFTFovBn_Pxvo_1L7-_SZLy92BG1aZV4BxvIGk1cAL1YEIEokUd1SHFAkJN2BJJTqUrwdjcfJjCXo5_xo2qMYoBhdK7FsLapekg6mtEzLaoR7s_Z0bIFv7io1KRnyeqhgaf9h39qa3ArmRNQ3YNKkygkWpdlR7hACcBUS72EslSpl75AqScwW9oJw40dtdyn5q4O0xrzEKmlqmM9blzRHYtfVKN8LUpAJpNNbfiBkVzeSp8Ll8uz67DiHIavmuDARQZWer_0kqnAkk5PPNV1oFOkyEpABUWqiDVephO5P5jYwjWn_7KxDCNS6oTH4_GIqbor6e2EryplQtcBsrqPTj47QVkkQJJMCX9U4xwwihWU6f3E0zxC91ijQD_DP0scWAhG7qVAGeAMh5-qOU64tMqC9Niu0uBqmrUXQXlpjpfpIref2q7G80Fd9F5cCuxQ7NDWQkUbwVHycg7YhWJcfuPfCbnybf5ZZCkulsRqwXKGP86R8JHmn1A6uESvrH8KPvcxbia7fon7HH28PEojs5jtKzUR6EM3Yg1HYQfqh1hU0mDcvBEaoipW7MVvXpGDn36AYhhtHh8AT-AfIH6IBaa6WHSIZRunFD3gJ7m4zzYKoiNnui8yuKAqOZkF5KXuHN9R-yFGYj2jyt0uL9iq6mVURv-eDA4uiZo9B3--zoC9mnYQmCcEh6YMSRZhDcLwB1OG3pd2nQGhtUYalcMw6YowDIaLxEzeFZd55w-_I5xBQr_1SwyPaoM24bgw_Jf6hIqx4e5JZmMhu8kI6_BhRLbRDVL5zNLIAabyOjXIJS_U2x3TLQzAGXWrw9fci8szssvYcSGQ4B2AA7Nfdf8XwT0FKbH8ABJW5RoYxJ5bX6iwjGvGxd5OcPg2X2XSILGHVeqX-Qyl71zgehc96O8X8x1OaPso8_8dvRS4XloopnRSFy9slc79pwpNjqyKluAlQWPyftqnjBB-kRbS8XiRgJ5b5XmDsGTYuauTbb72YNqgMThlHEuU4KpoXIICZSpn3KtfR4piLMzBeSIG775WOOQJauBu2YPMpKL9XQPWb4lrF_v_";
-    const DROPBOX_API = "https://api.dropboxapi.com/2/files/list_folder";
+    const ACCESS_TOKEN = "sl.u.AGC5jnmDzU8Fi7MEWpaT8MzBIawTj8HkNOzfAZ9ZCunFH9cWZp16B0KEmO5otZviX7nY4AyzymWpnKmsaZd6gvmNQ7MHm4a4jXrKWgZKnQXNp6xHPgV98DyldB-RgjYqqDQhuNS3L1kvGeyUIUQQPuwPQ95lnBUn4sxRK9mqf4onMN3cCftrv5Vvw33Xkk6lmTD8OXbUCBAaH2pmCVZ6gn5nQ4Ta3-B5rvtuyFXSaOScCJeg6spkslOdOgmv9w2m30QyqywE_e5Lw0dV6XLUBQI_MRMMEFgC1D4C7M_lbBTiOsWQtOFy9eBAidc2iq4D750YhbS4_Crk6JlzaqcGY_0GHU9Emdppb-aT9tigrrBXOm9aag6PiTGKkzyKrCIs_5iVsSrzNDfsMIrlYLIwoTsnsSmXyujQbVbPTrckMwcjCbU-f_57ey5fN1HG0AXSY3zXidH8HG4aP2P9VbCQAmSy5K8FHVN_ezgXe2hLK3beRHOHM4zYk7jg6PtSQVSoG9i6wpfWMONHYKMn0d98J86jr3dRtPz4VCj_JoKPh-lI3PH3kqPUybCI28_bux3Kqm9dlnzBVoL0nACn4YWHE5eA-PuOtLkaqaUbrW5xIQHJYk24VGLJ326JZKVGy9n47s5zc5DhTUt-9o4fPdTbsiG8gtZceH102vN1UQBbqcxGrBnnk24i50seQ0N3fIMUcmH69F-7ywVkdNP1_oROmou_RQpZYLVqXj8xn19E-3qiERR4QDfihVfeysI4UX83Yz_W4KoGCnW3BYftbGhzCwmNtvKlV5mdUSABdI8juX25bE4QVVkPuYDDizy58xVMbQ6bLS0gXZbvbxg3PSYeoS2xWLJngVyaPvd9PDl6cUpo-sDGvIAPvFQFInBvqJ4_Kx8WuCtqLA4XuBZEinC6lIcxe8nKr08fBuNtB0hMO0f85rZLJemubjKmr5MDufTUIvtIc3XAfLPy4Fpvro54aJa_eCiWWtl4xmHWPkH7HJ6ak4DHntxTly2NyiouVN6_bJKHr61tSqDY8VAmfO82zzZovf1rtfhLudQVM9PWX-riDFZbQDj0m6vUftLuoZktqPbuouCFc-hTqLvBRvbIGgbLSOCpqDPZPq99e85YawQPYK9p7H1KeOAmKYS7goACrnRBdB7cMKXOBWLKcEEmyo4sRTO5sM5cd9tKKaimYpwyFZTBiUSblwFkq5FD3DCKrnb4WKy2q9hIE5UTDaj9DIqxYDcx1DCVnoCP-ZiNbSUUB9z1F0SxkK6ax8xobeiKObU"; 
+    const LIST_API = "https://api.dropboxapi.com/2/files/list_folder";
+    const TEMP_LINK_API = "https://api.dropboxapi.com/2/files/get_temporary_link";
 
-    let currentPath = "";
+    // 📂 現在のパスを管理（戻る機能用）
+    let pathHistory = [];
 
-    async function fetchFiles(path) {
-      const response = await fetch(DROPBOX_API, {
+    async function fetchFiles(path = "") {
+      // ✅ フォルダを開いたら動画を止める
+      const videoPlayer = document.getElementById("videoPlayer");
+      videoPlayer.pause();
+      videoPlayer.src = "";
+      videoPlayer.style.display = "none";
+
+      const response = await fetch(LIST_API, {
         method: "POST",
         headers: {
           "Authorization": "Bearer " + ACCESS_TOKEN,
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ path: path })
+        body: JSON.stringify({ path })
       });
-
       const data = await response.json();
-      console.log(data);
 
       const list = document.getElementById("file-list");
-      list.innerHTML = "";
+      list.innerHTML = ""; // 前回のリストをクリア
 
-      const backBtn = document.getElementById("back");
-      backBtn.style.display = path ? "inline" : "none";
-      backBtn.onclick = () => {
-        fetchFiles("");
-        currentPath = "";
-      }
+      // 戻るボタンの表示制御
+      const backBtn = document.getElementById("backBtn");
+      backBtn.style.display = pathHistory.length > 0 ? "inline-block" : "none";
 
       data.entries.forEach(entry => {
         const li = document.createElement("li");
         li.textContent = entry.name;
 
-        if (entry[".tag"] === "folder") {
+        if(entry[".tag"] === "folder") {
+          li.classList.add("folder");
           li.onclick = () => {
-            currentPath = entry.path_lower;
+            pathHistory.push(path); // 現在のパスを記録
             fetchFiles(entry.path_lower);
-          }
+          };
+        } else if(entry[".tag"] === "file" && entry.name.endsWith(".mp4")) {
+          li.classList.add("file");
+          li.onclick = () => playVideo(entry.path_lower);
         }
 
-        // ファイルも名前だけ表示
         list.appendChild(li);
       });
     }
 
-    fetchFiles("");
+    async function playVideo(path) {
+      const response = await fetch(TEMP_LINK_API, {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + ACCESS_TOKEN,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ path })
+      });
+
+      const data = await response.json();
+      const videoUrl = data.link;
+
+      const videoPlayer = document.getElementById("videoPlayer");
+      videoPlayer.src = videoUrl;
+      videoPlayer.style.display = "block";
+      videoPlayer.play();
+    }
+
+    // 戻るボタンの処理
+    document.getElementById("backBtn").onclick = () => {
+      if (pathHistory.length > 0) {
+        const prevPath = pathHistory.pop(); // 一つ前のパスを取り出す
+        fetchFiles(prevPath);
+      }
+    };
+
+    // 初回呼び出し（ルートフォルダ表示）
+    fetchFiles();
   </script>
 </body>
 </html>
